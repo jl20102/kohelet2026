@@ -1,148 +1,149 @@
-import streamlit as st
-import requests
-import urllib.parse
+from flask import Flask, render_template_string, request, jsonify
+import requests, urllib.parse
 
-# Set page config
-st.set_page_config(page_title="Tefilot - Siddur Browser", layout="centered")
+app = Flask(__name__)
 
-# --- MERGED STYLING ---
-st.markdown(f"""
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Siddur - Big Buttons</title>
     <style>
-        /* Apply the soothing gradient to the main app background */
-        .stApp {{
-            background: linear-gradient(135deg, #e0d7c6 0%, #a3c1ad 50%, #7da2a9 100%);
-            font-family: 'Georgia', serif;
-        }}
+        /* This forces the page to stay exactly the size of your monitor */
+        html, body { 
+            margin: 0; padding: 0; width: 100vw; height: 100vh; 
+            overflow: hidden; background: #fff; font-family: sans-serif;
+        }
+        .container { display: flex; height: 100%; width: 100%; }
 
-        /* The main "Container" look */
-        .main .block-container {{
-            background: rgba(255, 255, 255, 0.88);
-            padding: 40px !important;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: 2px solid #c5b358;
-            margin-top: 50px;
-            margin-bottom: 50px;
-            position: relative;
-        }}
+        /* Sidebar */
+        .sidebar { width: 250px; background: #f4f4f2; border-right: 2px solid #ddd; padding: 20px; flex-shrink: 0; }
+        select { width: 100%; padding: 10px; margin-bottom: 15px; font-size: 16px; }
+        .start-btn { width: 100%; padding: 20px; background: #8da399; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 10px; }
 
-        /* Hebrew text styling */
-        .hebrew-text {{
-            direction: rtl;
-            text-align: right;
-            font-family: 'SBL Hebrew', 'Arial', serif;
-            font-size: 26px;
-            line-height: 1.8;
-            color: #333;
+        /* Prayer Area */
+        .prayer-zone { flex-grow: 1; position: relative; display: flex; flex-direction: column; }
+        .text-scroll { flex-grow: 1; overflow-y: auto; padding: 60px; text-align: center; padding-bottom: 150px; }
+        .hebrew { direction: rtl; font-size: 3rem; line-height: 2.2; color: #000; }
+
+        /* THE FIX: BIG FLOATING BUTTONS */
+        .floating-nav {
+            position: absolute;
+            bottom: 30px; /* 30 pixels from the bottom */
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.95);
             padding: 20px;
-            border-top: 1px solid #eee;
-        }}
+            border: 3px solid #8da399;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 10000;
+        }
 
-        /* Headings and UI elements */
-        h1 {{
-            color: #4a6670 !important;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            text-align: center;
-        }}
-
-        .footer-tag {{
-            text-align: center;
-            margin-top: 30px;
-            background: #7da2a9;
-            color: white;
-            padding: 5px 25px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }}
+        .big-btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .next { background: #8da399; color: white; }
+        .prev { background: #eee; color: #555; }
+        .big-btn:disabled { background: #ccc; color: #888; cursor: not-allowed; }
         
-        /* Sidebar styling to match */
-        [data-testid="stSidebar"] {{
-            background-color: rgba(255, 255, 255, 0.5);
-        }}
+        .status { align-self: center; font-weight: bold; color: #8da399; margin: 0 10px; }
     </style>
-    """, unsafe_allow_html=True)
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2 style="color:#8da399">SIDDUR</h2>
+            <select id="nusach" onchange="load()"><option value="Siddur_Ashkenaz">Ashkenaz</option><option value="Siddur_Sefard">Sefard</option></select>
+            <div id="menus"></div>
+            <button class="start-btn" onclick="go()">OPEN PRAYER</button>
+        </div>
 
-BASE_URL = "https://www.sefaria.org/api"
-INDEX_NAME = "Siddur_Ashkenaz"
+        <div class="prayer-zone">
+            <div class="text-scroll" id="scroller">
+                <div id="output" class="hebrew">Please pick a prayer.</div>
+            </div>
 
-@st.cache_data
-def get_siddur_index():
-    response = requests.get(f"{BASE_URL}/v2/index/{INDEX_NAME}")
-    response.raise_for_status()
-    return response.json()['schema']
+            <div class="floating-nav">
+                <button class="big-btn prev" id="btn-p" onclick="move(-1)" disabled>BACK</button>
+                <div class="status" id="stat">READY</div>
+                <button class="big-btn next" id="btn-n" onclick="move(1)" disabled>NEXT PRAYER</button>
+            </div>
+        </div>
+    </div>
 
-def flatten_text(text_data):
-    if isinstance(text_data, list):
-        return "\n\n".join([flatten_text(item) for item in text_data])
-    return str(text_data)
-
-# --- APP LOGIC ---
-st.sidebar.title("Siddur Navigator")
-
-try:
-    schema = get_siddur_index()
-    
-    # Navigation logic
-    l1_nodes = schema.get('nodes', [])
-    l1_titles = [n.get('enTitle', n.get('key', 'Unknown')) for n in l1_nodes]
-    choice1 = st.sidebar.selectbox("Section", l1_titles)
-    node1 = next(n for n in l1_nodes if n.get('enTitle', n.get('key')) == choice1)
-    
-    final_ref_parts = [INDEX_NAME, choice1.replace(" ", "_")]
-    display_title = choice1
-
-    if 'nodes' in node1:
-        l2_nodes = node1['nodes']
-        l2_titles = [n.get('enTitle', n.get('key', 'Unknown')) for n in l2_nodes]
-        choice2 = st.sidebar.selectbox("Service", l2_titles)
-        node2 = next(n for n in l2_nodes if n.get('enTitle', n.get('key')) == choice2)
-        final_ref_parts.append(choice2.replace(" ", "_"))
-        display_title = choice2
-        
-        if 'nodes' in node2:
-            l3_nodes = node2['nodes']
-            l3_titles = [n.get('enTitle', n.get('key', 'Unknown')) for n in l3_nodes]
-            choice3 = st.sidebar.selectbox("Prayer", l3_titles)
-            final_ref_parts.append(choice3.replace(" ", "_"))
-            display_title = choice3
-
-    final_ref = ",_".join(final_ref_parts)
-
-    # --- MAIN DISPLAY ---
-    st.markdown("<h1>Tefilot</h1>", unsafe_allow_html=True)
-    
-    # Main container content
-    st.subheader(display_title.replace("_", " "))
-    
-    if st.button("Display Prayer", use_container_width=True):
-        with st.spinner("Fetching..."):
-            encoded_parts = [urllib.parse.quote(p) for p in final_ref.split(",_")]
-            safe_ref = ",_".join(encoded_parts)
-            url = f"{BASE_URL}/v3/texts/{safe_ref}?context=0"
+    <script>
+        let list = []; let pos = -1;
+        async function load() {
+            const res = await fetch(`https://www.sefaria.org/api/v2/index/${document.getElementById('nusach').value}`);
+            const d = await res.json();
+            document.getElementById('menus').innerHTML = '';
+            make(d.schema);
+        }
+        function make(node) {
+            if (!node.nodes) return;
+            const s = document.createElement('select');
+            s.options.add(new Option("-- Select --", ""));
+            node.nodes.forEach((n, idx) => s.options.add(new Option(n.enTitle || n.key, idx)));
+            s.onchange = () => {
+                while (s.nextSibling) s.parentElement.removeChild(s.nextSibling);
+                const next = node.nodes[s.value];
+                if (next && next.nodes) make(next);
+                else { list = node.nodes; pos = parseInt(s.value); }
+            };
+            document.getElementById('menus').appendChild(s);
+        }
+        async function go() { if(pos !== -1) await fetch(); }
+        async function move(d) { pos += d; await fetch(); }
+        async function fetch() {
+            const sels = document.querySelectorAll('#menus select');
+            let path = [document.getElementById('nusach').value];
+            for(let j=0; j<sels.length-1; j++) path.push(sels[j].options[sels[j].selectedIndex].text);
+            path.push(list[pos].enTitle || list[pos].key);
             
-            res = requests.get(url)
-            if res.status_code == 200:
-                data = res.json()
-                hebrew_text = ""
-                for v in data.get('versions', []):
-                    if v.get('language') == 'he':
-                        hebrew_content = flatten_text(v.get('text', []))
-                        st.markdown(f'<div class="hebrew-text">{hebrew_content}</div>', unsafe_allow_html=True)
-                        hebrew_text = "found"
-                        break
-                if not hebrew_text:
-                    st.warning("No Hebrew version found for this specific section.")
-            else:
-                st.error("Select a more specific prayer in the sidebar.")
-    else:
-        st.markdown('<p style="color: #888; font-style: italic; text-align: center; padding: 40px;">'
-                    'Your prayers and meditations will appear here...</p>', unsafe_allow_html=True)
+            const res = await fetch('/get', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({path})
+            });
+            const d = await res.json();
+            document.getElementById('output').innerHTML = d.t;
+            document.getElementById('scroller').scrollTop = 0;
+            
+            // Activate Buttons
+            document.getElementById('btn-p').disabled = (pos <= 0);
+            document.getElementById('btn-n').disabled = (pos >= list.length - 1);
+            document.getElementById('stat').innerText = `${pos + 1} / ${list.length}`;
+        }
+        window.onload = load;
+    </script>
+</body>
+</html>
+"""
 
-    st.markdown('<div class="footer-tag">Reflections</div>', unsafe_allow_html=True)
+@app.route("/")
+def index(): return render_template_string(HTML_TEMPLATE)
 
-except Exception as e:
-    st.sidebar.error(f"Navigation Error: {e}")
+@app.route("/get", methods=["POST"])
+def get():
+    p = request.json['path']
+    ref = ", ".join(p).replace(' ', '_').replace("'", "%27")
+    r = requests.get(f"https://www.sefaria.org/api/v3/texts/{ref}?context=0").json()
+    txt = ""
+    for v in r.get('versions', []):
+        if v.get('language') == 'he' and v.get('text'):
+            txt = "<br><br>".join(v['text']) if isinstance(v['text'], list) else v['text']
+            break
+    return jsonify({"t": txt or "Empty Section"})
+
+if __name__ == "__main__":
+    app.run(host='127.0.0.1', port=5001)
