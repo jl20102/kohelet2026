@@ -1,83 +1,148 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tefilot - Judaic Prayers</title>
+import streamlit as st
+import requests
+import urllib.parse
+
+# Set page config
+st.set_page_config(page_title="Tefilot - Siddur Browser", layout="centered")
+
+# --- MERGED STYLING ---
+st.markdown(f"""
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            /* Soothing gradient inspired by the previous image */
+        /* Apply the soothing gradient to the main app background */
+        .stApp {{
             background: linear-gradient(135deg, #e0d7c6 0%, #a3c1ad 50%, #7da2a9 100%);
             font-family: 'Georgia', serif;
-        }
+        }}
 
-        .container {
-            width: 90%;
-            max-width: 600px;
-            background: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
-            padding: 40px;
+        /* The main "Container" look */
+        .main .block-container {{
+            background: rgba(255, 255, 255, 0.88);
+            padding: 40px !important;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
-            border: 2px solid #c5b358; /* Gold accent border */
+            border: 2px solid #c5b358;
+            margin-top: 50px;
+            margin-bottom: 50px;
             position: relative;
-        }
+        }}
 
-        /* Decorative "Corner" feel */
-        .container::before {
-            content: "✡";
-            position: absolute;
-            top: 10px;
-            font-size: 1.5rem;
-            color: #c5b358;
-            opacity: 0.5;
-        }
+        /* Hebrew text styling */
+        .hebrew-text {{
+            direction: rtl;
+            text-align: right;
+            font-family: 'SBL Hebrew', 'Arial', serif;
+            font-size: 26px;
+            line-height: 1.8;
+            color: #333;
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }}
 
-        h1 {
-            color: #4a6670;
+        /* Headings and UI elements */
+        h1 {{
+            color: #4a6670 !important;
             letter-spacing: 2px;
             text-transform: uppercase;
-            margin-bottom: 20px;
-        }
+            text-align: center;
+        }}
 
-        .prayer-space {
-            color: #333;
-            line-height: 1.8;
-            font-size: 1.2rem;
-            min-height: 200px;
-            padding: 20px;
-        }
-
-        .footer-tag {
+        .footer-tag {{
+            text-align: center;
             margin-top: 30px;
             background: #7da2a9;
             color: white;
-            display: inline-block;
             padding: 5px 25px;
             border-radius: 20px;
             font-size: 0.9rem;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <h1>Tefilot</h1>
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }}
         
-        <div class="prayer-space">
-            <p style="color: #888; font-style: italic;">
-                Your prayers and meditations will appear here...
-            </p>
-        </div>
+        /* Sidebar styling to match */
+        [data-testid="stSidebar"] {{
+            background-color: rgba(255, 255, 255, 0.5);
+        }}
+    </style>
+    """, unsafe_allow_html=True)
 
-        <div class="footer-tag">Reflections</div>
-    </div>
+BASE_URL = "https://www.sefaria.org/api"
+INDEX_NAME = "Siddur_Ashkenaz"
 
-</body>
-</html>
+@st.cache_data
+def get_siddur_index():
+    response = requests.get(f"{BASE_URL}/v2/index/{INDEX_NAME}")
+    response.raise_for_status()
+    return response.json()['schema']
+
+def flatten_text(text_data):
+    if isinstance(text_data, list):
+        return "\n\n".join([flatten_text(item) for item in text_data])
+    return str(text_data)
+
+# --- APP LOGIC ---
+st.sidebar.title("Siddur Navigator")
+
+try:
+    schema = get_siddur_index()
+    
+    # Navigation logic
+    l1_nodes = schema.get('nodes', [])
+    l1_titles = [n.get('enTitle', n.get('key', 'Unknown')) for n in l1_nodes]
+    choice1 = st.sidebar.selectbox("Section", l1_titles)
+    node1 = next(n for n in l1_nodes if n.get('enTitle', n.get('key')) == choice1)
+    
+    final_ref_parts = [INDEX_NAME, choice1.replace(" ", "_")]
+    display_title = choice1
+
+    if 'nodes' in node1:
+        l2_nodes = node1['nodes']
+        l2_titles = [n.get('enTitle', n.get('key', 'Unknown')) for n in l2_nodes]
+        choice2 = st.sidebar.selectbox("Service", l2_titles)
+        node2 = next(n for n in l2_nodes if n.get('enTitle', n.get('key')) == choice2)
+        final_ref_parts.append(choice2.replace(" ", "_"))
+        display_title = choice2
+        
+        if 'nodes' in node2:
+            l3_nodes = node2['nodes']
+            l3_titles = [n.get('enTitle', n.get('key', 'Unknown')) for n in l3_nodes]
+            choice3 = st.sidebar.selectbox("Prayer", l3_titles)
+            final_ref_parts.append(choice3.replace(" ", "_"))
+            display_title = choice3
+
+    final_ref = ",_".join(final_ref_parts)
+
+    # --- MAIN DISPLAY ---
+    st.markdown("<h1>Tefilot</h1>", unsafe_allow_html=True)
+    
+    # Main container content
+    st.subheader(display_title.replace("_", " "))
+    
+    if st.button("Display Prayer", use_container_width=True):
+        with st.spinner("Fetching..."):
+            encoded_parts = [urllib.parse.quote(p) for p in final_ref.split(",_")]
+            safe_ref = ",_".join(encoded_parts)
+            url = f"{BASE_URL}/v3/texts/{safe_ref}?context=0"
+            
+            res = requests.get(url)
+            if res.status_code == 200:
+                data = res.json()
+                hebrew_text = ""
+                for v in data.get('versions', []):
+                    if v.get('language') == 'he':
+                        hebrew_content = flatten_text(v.get('text', []))
+                        st.markdown(f'<div class="hebrew-text">{hebrew_content}</div>', unsafe_allow_html=True)
+                        hebrew_text = "found"
+                        break
+                if not hebrew_text:
+                    st.warning("No Hebrew version found for this specific section.")
+            else:
+                st.error("Select a more specific prayer in the sidebar.")
+    else:
+        st.markdown('<p style="color: #888; font-style: italic; text-align: center; padding: 40px;">'
+                    'Your prayers and meditations will appear here...</p>', unsafe_allow_html=True)
+
+    st.markdown('<div class="footer-tag">Reflections</div>', unsafe_allow_html=True)
+
+except Exception as e:
+    st.sidebar.error(f"Navigation Error: {e}")
