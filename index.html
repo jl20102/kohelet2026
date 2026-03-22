@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tefilot - Judaic Prayers</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            /* Soothing gradient inspired by the previous image */
+            background: linear-gradient(135deg, #e0d7c6 0%, #a3c1ad 50%, #7da2a9 100%);
+            font-family: 'Georgia', serif;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 2px solid #c5b358; /* Gold accent border */
+            position: relative;
+        }
+
+        /* Decorative "Corner" feel */
+        .container::before {
+            content: "✡";
+            position: absolute;
+            top: 10px;
+            font-size: 1.5rem;
+            color: #c5b358;
+            opacity: 0.5;
+        }
+
+        h1 {
+            color: #4a6670;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .prayer-space {
+            color: #333;
+            line-height: 1.8;
+            font-size: 1.2rem;
+            min-height: 200px;
+            padding: 20px;
+        }
+
+        .footer-tag {
+            margin-top: 30px;
+            background: #7da2a9;
+            color: white;
+            display: inline-block;
+            padding: 5px 25px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Tefilot</h1>
+        
+        <div class="prayer-space">
+            <p style="color: #888; font-style: italic;">
+                Your prayers and meditations will appear here...
+            </p>
+        </div>
+
+        <div class="footer-tag">Reflections</div>
+    </div>
+
+</body>
+</html>
