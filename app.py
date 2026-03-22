@@ -1,13 +1,13 @@
 from flask import Flask, render_template, request, jsonify
 import requests
 import urllib.parse
+import re
 from collections import deque
 
 app = Flask(__name__)
 
-# Store the last 20 speed readings
-speed_history = deque(maxlen=20)
-THRESHOLD = 20
+# speed_history stores 1 for active, 0 for idle (2-second intervals)
+speed_history = deque(maxlen=10)
 
 def flatten_text(data):
     if isinstance(data, str): return [data]
@@ -37,22 +37,37 @@ def index():
 def get_prayer():
     path = request.json.get('path', [])
     book = path[0].replace('_', ' ')
-    full_ref = f"{book}, {', '.join(path[1:])}"
+    segments = ", ".join(path[1:])
+    full_ref = f"{book}, {segments}"
+    
+    # Reset history for a fresh start on a new prayer
+    speed_history.clear()
+    
     txt = get_sefaria_text(full_ref)
+    
+    # Basic Link Hunter / Fallback
+    if not txt:
+        try:
+            links = requests.get(f"https://www.sefaria.org/api/links/{urllib.parse.quote(full_ref)}").json()
+            if isinstance(links, list) and len(links) > 0:
+                txt = get_sefaria_text(links[0].get('ref'))
+        except: pass
+
     return jsonify({"text": txt or "Liturgy not found.", "error": not txt})
 
-@app.route("/stream_speed", methods=["POST"])
-def stream_speed():
-    speed = request.json.get('speed', 0)
-    speed_history.append(speed)
-    avg_speed = sum(speed_history) / len(speed_history) if speed_history else 0
+@app.route("/stream_sample", methods=["POST"])
+def stream_sample():
+    is_active = request.json.get('active', 0)
+    speed_history.append(is_active)
     
-    # Alert if history is full and average drops below threshold
-    alert = len(speed_history) == speed_history.maxlen and avg_speed < THRESHOLD
-    return jsonify({
-        "avg_speed": round(avg_speed, 2),
-        "low_speed_alert": alert
-    })
+    # Alert if last 3 samples (6 seconds) are all 0
+    flatline = False
+    if len(speed_history) >= 3:
+        last_three = list(speed_history)[-3:]
+        if all(v == 0 for v in last_three):
+            flatline = True
+            
+    return jsonify({"flatline_alert": flatline})
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
