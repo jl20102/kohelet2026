@@ -3,132 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiet Siddur - Focused Edition</title>
+    <title>Quiet Space</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { transition: background-color 1s ease; font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
-        .hebrew-text { font-family: 'SBL Hebrew', serif; line-height: 1.6; direction: rtl; font-size: 4.5rem; }
-        .english-text { font-size: 2rem; color: #64748b; line-height: 1.4; }
-        .hidden { display: none; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400&display=swap');
         
-        /* Sidebar Styles */
-        #sidebar {
-            transition: transform 0.3s ease-in-out;
-            transform: translateX(-100%);
+        body { 
+            transition: background-color 5s ease-in-out; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f0f4f8; 
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
-        #sidebar.open { transform: translateX(0); }
-        .sidebar-item { @apply w-full p-4 text-left hover:bg-indigo-50 rounded-xl transition-colors mb-2 font-medium text-slate-700; }
+
+        /* The Breathing Circle */
+        .circle {
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.05);
+            animation: breathe 8s infinite ease-in-out;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); background: rgba(255, 255, 255, 0.2); }
+            50% { transform: scale(1.6); background: rgba(255, 255, 255, 0.6); }
+        }
+
+        .text-fade {
+            animation: textFade 12s infinite;
+            color: #475569;
+            font-size: 1.5rem;
+            letter-spacing: 0.05em;
+            font-weight: 300;
+        }
+
+        @keyframes textFade {
+            0%, 100% { opacity: 0; }
+            40%, 60% { opacity: 1; }
+        }
     </style>
 </head>
-<body id="mainBody" class="flex flex-col items-center justify-center min-h-screen p-4">
+<body id="bg">
 
-    <div id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white shadow-2xl z-50 p-6 flex flex-col">
-        <div class="flex justify-between items-center mb-8">
-            <h3 class="font-bold text-xl">Siddur Menu</h3>
-            <button onclick="toggleSidebar()" class="text-slate-400 text-2xl">&times;</button>
-        </div>
-        <nav class="flex-1 overflow-y-auto">
-            <button class="sidebar-item" onclick="loadPrayer('Siddur_Ashkenaz%2C_Weekday%2C_Shacharit%2C_Preparation_for_Prayer%2C_Asher_Yatzar')">Asher Yatzar</button>
-            <button class="sidebar-item" onclick="loadPrayer('Siddur_Ashkenaz%2C_Weekday%2C_Shacharit%2C_Shema')">Shema</button>
-            <button class="sidebar-item" onclick="loadPrayer('Siddur_Ashkenaz%2C_Weekday%2C_Shacharit%2C_Amidah%2C_Patriarchs')">Amidah (Start)</button>
-            <button class="sidebar-item" onclick="loadPrayer('Siddur_Ashkenaz%2C_Weekday%2C_Shacharit%2C_Amidah%2C_Holiness_of_God')">Kedushah</button>
-            <button class="sidebar-item" onclick="loadPrayer('Psalms.23')">Psalm 23</button>
-            <button class="sidebar-item" onclick="loadPrayer('Siddur_Ashkenaz%2C_Weekday%2C_Shacharit%2C_Concluding_Prayers%2C_Aleinu_Leshabeach')">Aleinu</button>
-        </nav>
-        <button onclick="location.reload()" class="text-sm text-slate-400 mt-4 border-t pt-4">Reset App</button>
+    <div class="text-center z-10">
+        <div class="circle mx-auto mb-20"></div>
+        <div id="affirmation" class="text-fade px-6">just be here</div>
     </div>
 
-    <button id="menuTrigger" onclick="toggleSidebar()" class="fixed top-6 left-6 p-3 bg-white shadow-md rounded-full hover:bg-slate-50 transition z-40 hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-    </button>
-
-    <div id="checkin-card" class="max-w-md w-full bg-white p-10 rounded-[40px] shadow-2xl text-center">
-        <h2 class="text-3xl font-bold mb-4">Check-in</h2>
-        <input type="range" id="anxietyScale" min="1" max="10" value="5" class="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 mb-10">
-        <button onclick="showMenu()" class="w-full py-5 bg-indigo-600 text-white rounded-2xl text-2xl font-bold shadow-lg">Start</button>
-    </div>
-
-    <div id="prayer-interface" class="hidden w-full max-w-6xl">
-        <div class="w-full bg-slate-200 h-2 mb-16 rounded-full overflow-hidden">
-            <div id="progressBar" class="bg-indigo-600 h-full transition-all duration-500" style="width: 0%"></div>
-        </div>
-        <div class="min-h-[450px] flex flex-col justify-center text-center">
-            <div id="content" class="space-y-12">
-                <p id="hebrew" class="hebrew-text font-bold"></p>
-                <p id="english" class="english-text italic"></p>
-            </div>
-            <div class="mt-24 flex justify-between items-center px-4">
-                <button onclick="prevVerse()" class="text-2xl text-slate-300 hover:text-slate-600">Back</button>
-                <button onclick="nextVerse()" id="nextBtn" class="px-20 py-8 bg-indigo-600 text-white rounded-[30px] text-3xl font-bold shadow-2xl">Next</button>
-            </div>
-        </div>
+    <div class="fixed bottom-10 flex gap-4">
+        <button onclick="changeColor('#f1f5f9')" class="w-8 h-8 rounded-full bg-slate-100 border border-white shadow-sm"></button>
+        <button onclick="changeColor('#f0fdf4')" class="w-8 h-8 rounded-full bg-green-50 border border-white shadow-sm"></button>
+        <button onclick="changeColor('#f5f3ff')" class="w-8 h-8 rounded-full bg-violet-50 border border-white shadow-sm"></button>
+        <button onclick="changeColor('#fff7ed')" class="w-8 h-8 rounded-full bg-orange-50 border border-white shadow-sm"></button>
     </div>
 
     <script>
-        let lines = [];
-        let currentIndex = 0;
+        const colors = ['#f1f5f9', '#f0fdf4', '#f5f3ff', '#fff7ed', '#ecfeff', '#fdf2f8'];
+        const phrases = [
+            "inhale peace",
+            "exhale tension",
+            "you are safe",
+            "slow down",
+            "nothing to do",
+            "nowhere to be",
+            "just this breath"
+        ];
+        
+        let colorIndex = 0;
+        let phraseIndex = 0;
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
+        function changeColor(hex) {
+            document.getElementById('bg').style.backgroundColor = hex;
         }
 
-        function showMenu() {
-            const level = document.getElementById('anxietyScale').value;
-            if (level >= 7) document.getElementById('mainBody').style.backgroundColor = "#f1f5f9";
-            document.getElementById('checkin-card').classList.add('hidden');
-            document.getElementById('menuTrigger').classList.remove('hidden');
-            // Default to first prayer
-            loadPrayer('Siddur_Ashkenaz%2C_Weekday%2C_Shacharit%2C_Shema');
-        }
+        // Auto-cycle atmosphere
+        setInterval(() => {
+            colorIndex = (colorIndex + 1) % colors.length;
+            changeColor(colors[colorIndex]);
+        }, 10000);
 
-        async function loadPrayer(path) {
-            lines = []; currentIndex = 0;
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('prayer-interface').classList.remove('hidden');
-            document.getElementById('hebrew').innerText = "...";
-
-            const res = await fetch(`https://www.sefaria.org/api/texts/${path}?context=0`);
-            const data = await res.json();
-
-            const fullHe = Array.isArray(data.he) ? data.he.join(' ') : data.he;
-            const fullEn = Array.isArray(data.text) ? data.text.join(' ') : data.text;
-
-            const heParts = fullHe.split(/[.:;]/);
-            const enParts = fullEn.split(/[.:;]/);
-
-            for(let i=0; i < heParts.length; i++) {
-                let h = heParts[i].replace(/<\/?[^>]+(>|$)/g, "").trim();
-                let e = enParts[i] ? enParts[i].replace(/<\/?[^>]+(>|$)/g, "").trim() : "";
-                if(h.length > 2) lines.push({ he: h + ".", en: e + "." });
-            }
-            displayLine();
-        }
-
-        function displayLine() {
-            if (lines.length === 0) return;
-            document.getElementById('hebrew').innerText = lines[currentIndex].he;
-            document.getElementById('english').innerText = lines[currentIndex].en;
-            document.getElementById('progressBar').style.width = `${((currentIndex + 1) / lines.length) * 100}%`;
-            document.getElementById('nextBtn').innerText = (currentIndex === lines.length - 1) ? "Done" : "Next";
-        }
-
-        function nextVerse() {
-            if (currentIndex < lines.length - 1) {
-                currentIndex++;
-                displayLine();
-            } else {
-                toggleSidebar(); // Open menu when done
-            }
-        }
-
-        function prevVerse() {
-            if (currentIndex > 0) {
-                currentIndex--;
-                displayLine();
-            }
-        }
+        setInterval(() => {
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            document.getElementById('affirmation').innerText = phrases[phraseIndex];
+        }, 12000);
     </script>
 </body>
 </html>
