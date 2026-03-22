@@ -3,99 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiet Space</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Tefilot - Judaic Prayers</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400&display=swap');
-        
-        body { 
-            transition: background-color 5s ease-in-out; 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #f0f4f8; 
+        body {
             margin: 0;
-            overflow: hidden;
+            padding: 0;
             display: flex;
-            align-items: center;
             justify-content: center;
-            height: 100vh;
-        }
-
-        /* The Breathing Circle */
-        .circle {
-            width: 200px;
-            height: 200px;
-            background: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.05);
-            animation: breathe 8s infinite ease-in-out;
+            min-height: 100vh;
+            /* Soothing gradient inspired by the previous image */
+            background: linear-gradient(135deg, #e0d7c6 0%, #a3c1ad 50%, #7da2a9 100%);
+            font-family: 'Georgia', serif;
         }
 
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); background: rgba(255, 255, 255, 0.2); }
-            50% { transform: scale(1.6); background: rgba(255, 255, 255, 0.6); }
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 2px solid #c5b358; /* Gold accent border */
+            position: relative;
         }
 
-        .text-fade {
-            animation: textFade 12s infinite;
-            color: #475569;
+        /* Decorative "Corner" feel */
+        .container::before {
+            content: "✡";
+            position: absolute;
+            top: 10px;
             font-size: 1.5rem;
-            letter-spacing: 0.05em;
-            font-weight: 300;
+            color: #c5b358;
+            opacity: 0.5;
         }
 
-        @keyframes textFade {
-            0%, 100% { opacity: 0; }
-            40%, 60% { opacity: 1; }
+        h1 {
+            color: #4a6670;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .prayer-space {
+            color: #333;
+            line-height: 1.8;
+            font-size: 1.2rem;
+            min-height: 200px;
+            padding: 20px;
+        }
+
+        .footer-tag {
+            margin-top: 30px;
+            background: #7da2a9;
+            color: white;
+            display: inline-block;
+            padding: 5px 25px;
+            border-radius: 20px;
+            font-size: 0.9rem;
         }
     </style>
 </head>
-<body id="bg">
+<body>
 
-    <div class="text-center z-10">
-        <div class="circle mx-auto mb-20"></div>
-        <div id="affirmation" class="text-fade px-6">just be here</div>
-    </div>
-
-    <div class="fixed bottom-10 flex gap-4">
-        <button onclick="changeColor('#f1f5f9')" class="w-8 h-8 rounded-full bg-slate-100 border border-white shadow-sm"></button>
-        <button onclick="changeColor('#f0fdf4')" class="w-8 h-8 rounded-full bg-green-50 border border-white shadow-sm"></button>
-        <button onclick="changeColor('#f5f3ff')" class="w-8 h-8 rounded-full bg-violet-50 border border-white shadow-sm"></button>
-        <button onclick="changeColor('#fff7ed')" class="w-8 h-8 rounded-full bg-orange-50 border border-white shadow-sm"></button>
-    </div>
-
-    <script>
-        const colors = ['#f1f5f9', '#f0fdf4', '#f5f3ff', '#fff7ed', '#ecfeff', '#fdf2f8'];
-        const phrases = [
-            "inhale peace",
-            "exhale tension",
-            "you are safe",
-            "slow down",
-            "nothing to do",
-            "nowhere to be",
-            "just this breath"
-        ];
+    <div class="container">
+        <h1>Tefilot</h1>
         
-        let colorIndex = 0;
-        let phraseIndex = 0;
+        <div class="prayer-space">
+            <p style="color: #888; font-style: italic;">
+                Your prayers and meditations will appear here...
+            </p>
+        </div>
 
-        function changeColor(hex) {
-            document.getElementById('bg').style.backgroundColor = hex;
-        }
+        <div class="footer-tag">Reflections</div>
+    </div>
 
-        // Auto-cycle atmosphere
-        setInterval(() => {
-            colorIndex = (colorIndex + 1) % colors.length;
-            changeColor(colors[colorIndex]);
-        }, 10000);
-
-        setInterval(() => {
-            phraseIndex = (phraseIndex + 1) % phrases.length;
-            document.getElementById('affirmation').innerText = phrases[phraseIndex];
-        }, 12000);
-    </script>
 </body>
 </html>
