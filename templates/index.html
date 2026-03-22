@@ -2,45 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Siddur Focus</title>
+    <title>Siddur Heartbeat</title>
     <style>
-        :root { --sage: #8DA399; --cream: #FFFFF0; --text: #2C3330; }
-        body { 
-            margin: 0; background-color: var(--cream); color: var(--text);
-            font-family: 'Georgia', serif; display: flex; flex-direction: column; height: 100vh;
-        }
-        .header-controls {
-            background: white; padding: 20px; border-bottom: 2px solid var(--sage);
-            display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 100;
-        }
-        .nav-row { display: flex; gap: 15px; margin-top: 10px; }
-        .btn { padding: 12px 25px; border-radius: 50px; border: none; cursor: pointer; font-weight: bold; }
-        .btn-main { background: var(--sage); color: white; }
-        .btn-main:disabled { background: #ccc; }
+        :root { --sage: #8DA399; --cream: #FFFFF0; --text: #2C3330; --alert: #d9534f; }
+        body { margin: 0; background: var(--cream); font-family: 'Georgia', serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* Stats & Nudge */
-        #scroll-stats { font-size: 0.75rem; color: #888; margin-top: 5px; }
+        .header-controls { background: white; padding: 15px; border-bottom: 2px solid var(--sage); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        
+        /* Visualization */
+        .viz-container { display: flex; align-items: center; gap: 15px; margin-top: 5px; background: #f8f9fa; padding: 5px 15px; border-radius: 10px; border: 1px solid #eee; }
+        #heartbeat-canvas { width: 150px; height: 30px; background: #fff; border-radius: 4px; }
+        
+        .nav-row { display: flex; gap: 10px; }
+        .btn { padding: 10px 20px; border-radius: 20px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-main { background: var(--sage); color: white; }
+        
         #nudge-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); display: none; justify-content: center;
-            align-items: center; z-index: 1000; backdrop-filter: blur(3px);
+            background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000;
         }
-        .nudge-card {
-            background: white; padding: 30px; border-radius: 15px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
+        .nudge-card { background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
 
         .prayer-container { flex: 1; overflow-y: auto; padding: 40px 20px; text-align: center; }
-        .hebrew-text { direction: rtl; font-size: 2.8rem; line-height: 2.2; max-width: 850px; margin: 0 auto; }
+        .hebrew-text { direction: rtl; font-size: 2.8rem; line-height: 2.2; max-width: 800px; margin: 0 auto; }
     </style>
 </head>
 <body>
 
     <div id="nudge-overlay">
         <div class="nudge-card">
-            <h3>Still learning?</h3>
-            <p>We noticed you stopped scrolling.</p>
-            <button class="btn btn-main" onclick="dismissNudge()">I'm here</button>
+            <h3>Focus Check</h3>
+            <p>Your scrolling pace has slowed significantly.</p>
+            <button class="btn btn-main" onclick="dismissNudge()">Continue Prayer</button>
         </div>
     </div>
 
@@ -49,24 +42,26 @@
             <select id="nusach" onchange="init()">
                 <option value="Siddur_Ashkenaz">Ashkenaz</option>
                 <option value="Siddur_Sefard">Sefard</option>
-                <option value="Siddur_Edot_HaMizrach">Edot HaMizrach</option>
             </select>
-            <div id="dynamic-menus"></div>
+            <span id="dynamic-menus"></span>
         </div>
-        <div id="breadcrumb-display" style="font-size:0.8rem; color:#666;"></div>
+
         <div class="nav-row">
             <button class="btn" id="prev" onclick="move(-1)" disabled>BACK</button>
             <button class="btn btn-main" id="open-btn" onclick="loadFirst()" disabled>OPEN</button>
             <button class="btn" id="next" onclick="move(1)" disabled>NEXT</button>
         </div>
-        <div id="scroll-stats">
-            Speed: <span id="speed-val">0</span> px/s | 
-            Status: <span id="idle-status">Active</span>
+
+        <div class="viz-container">
+            <canvas id="heartbeat-canvas"></canvas>
+            <div style="font-size: 0.7rem; color: #666; font-weight: bold;">
+                AVG: <span id="avg-val">0</span> px/s
+            </div>
         </div>
     </div>
 
     <div class="prayer-container" id="scroll-box">
-        <div id="display" class="hebrew-text">Select a prayer to begin.</div>
+        <div id="display" class="hebrew-text">Select a text above to begin.</div>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
