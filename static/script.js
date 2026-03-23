@@ -72,6 +72,7 @@ function updateGraph(val) {
 
 function dismissNudge() {
     document.getElementById('nudge-overlay').style.display = 'none';
+    setupNudgeUI();
     userActiveThisInterval = 1;
 }
 
@@ -101,15 +102,18 @@ function setupNudgeUI() {
                     </div>
                 </div>
 
-                <button onclick="submitCheckIn()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer;">I am here</button>
+                <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                    <button onclick="dismissNudge()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #888; color: white; border: none; border-radius: 5px;">Cancel</button>
+                    <button onclick="submitCheckIn()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px;">Check In</button>
+                </div>
             </div>
         `;
     }
 }
 
 async function submitCheckIn() {
-    const anxiety = document.getElementById('anx-slider').value;
-    const focus = document.getElementById('foc-slider').value;
+    const anxiety = parseInt(document.getElementById('anx-slider').value);
+    const focus = parseInt(document.getElementById('foc-slider').value);
     
     // Send data in background
     fetch('/submit_checkin', {
@@ -117,7 +121,22 @@ async function submitCheckIn() {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ anxiety, focus })
     });
-    dismissNudge();
+
+    let advice = "";
+    if (anxiety >= 7) advice += '<p style="margin-bottom:15px">Let’s slow things down together.<br>Place one hand on your stomach and one on your chest.<br>Breathe in slowly through your nose, letting your stomach rise more than your chest.<br>Then gently exhale through your mouth.<br>Repeat at your own pace.</p>';
+    if (focus <= 4) advice += '<p>You seem to be losing focus. It might be a good idea to take a short break.</p>';
+
+    if (advice) {
+        document.getElementById('nudge-overlay').innerHTML = `
+            <div style="background: white; padding: 25px; border-radius: 10px; text-align: center; max-width: 90%; color: #333;">
+                <h3>Guidance</h3>
+                ${advice}
+                <button onclick="dismissNudge()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; margin-top: 15px;">Okay</button>
+            </div>
+        `;
+    } else {
+        dismissNudge();
+    }
 }
 
 // --- Navigation & Data ---

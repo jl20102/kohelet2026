@@ -8,31 +8,31 @@ The application follows a client-server model. The frontend handles the prayer i
 
 ```mermaid
 graph TD
-    subgraph Client [Browser / Frontend]
+    subgraph Client ["Browser / Frontend"]
         UI[User Interface]
         Tracker[Activity Tracker]
         Graph[Canvas Visualizer]
     end
 
-    subgraph Server [Flask Backend]
+    subgraph Server ["Flask Backend"]
         API[API Routes]
         State[State Deque]
         Analysis[Focus Logic]
     end
 
-    subgraph External [External APIs]
+    subgraph External ["External APIs"]
         Sefaria[Sefaria Database]
     end
 
-    UI -->|User Reads| Tracker
-    Tracker -->|Pulse 2s| API
-    API -->|Store Data| State
-    State -->|Check Flatline| Analysis
-    Analysis -->|Alert Status| API
-    API -->|Update Graph| Graph
+    UI -->|"User Reads"| Tracker
+    Tracker -->|"Pulse 2s"| API
+    API -->|"Store Data"| State
+    State -->|"Check Flatline"| Analysis
+    Analysis -->|"Alert Status"| API
+    API -->|"Update Graph"| Graph
     
-    UI -->|Request Prayer| API
-    API -->|Fetch Text| Sefaria
+    UI -->|"Request Prayer"| API
+    API -->|"Fetch Text"| Sefaria
 ```
 
 ### "Nudge" Logic Flow
