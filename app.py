@@ -8,6 +8,7 @@ app = Flask(__name__)
 
 # speed_history stores 1 for active, 0 for idle (2-second intervals)
 speed_history = deque(maxlen=10)
+checkin_history = deque(maxlen=50)
 
 def flatten_text(data):
     if isinstance(data, str): return [data]
@@ -68,6 +69,14 @@ def stream_sample():
             flatline = True
             
     return jsonify({"flatline_alert": flatline})
+
+@app.route("/submit_checkin", methods=["POST"])
+def submit_checkin():
+    data = request.json
+    # Log the user's anxiety and focus levels
+    checkin_history.append(data)
+    print(f"Check-in received: {data}")
+    return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

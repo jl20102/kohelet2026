@@ -75,8 +75,54 @@ function dismissNudge() {
     userActiveThisInterval = 1;
 }
 
+function setupNudgeUI() {
+    const overlay = document.getElementById('nudge-overlay');
+    if (overlay) {
+        overlay.innerHTML = `
+            <div style="background: white; padding: 25px; border-radius: 10px; text-align: center; max-width: 90%; color: #333;">
+                <h3>Check In</h3>
+                <p>We noticed you paused. How are you feeling?</p>
+                
+                <div style="margin: 20px 0;">
+                    <label style="font-weight:bold;">Anxiety Level: <span id="anx-val">5</span></label><br>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">😌</span>
+                        <input type="range" id="anx-slider" min="1" max="10" value="5" oninput="document.getElementById('anx-val').innerText = this.value" style="flex-grow:1">
+                        <span style="font-size: 1.5rem;">😰</span>
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0;">
+                    <label style="font-weight:bold;">Focus Level: <span id="foc-val">5</span></label><br>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">😵‍💫</span>
+                        <input type="range" id="foc-slider" min="1" max="10" value="5" oninput="document.getElementById('foc-val').innerText = this.value" style="flex-grow:1">
+                        <span style="font-size: 1.5rem;">🧐</span>
+                    </div>
+                </div>
+
+                <button onclick="submitCheckIn()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer;">I am here</button>
+            </div>
+        `;
+    }
+}
+
+async function submitCheckIn() {
+    const anxiety = document.getElementById('anx-slider').value;
+    const focus = document.getElementById('foc-slider').value;
+    
+    // Send data in background
+    fetch('/submit_checkin', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ anxiety, focus })
+    });
+    dismissNudge();
+}
+
 // --- Navigation & Data ---
 async function init() {
+    setupNudgeUI();
     isPrayerOpen = false;
     const res = await fetch(`https://www.sefaria.org/api/v2/index/${document.getElementById('nusach').value}`);
     const data = await res.json();
@@ -88,7 +134,7 @@ function buildMenus(node, currentChain) {
     if (!node.nodes) return;
     const s = document.createElement('select');
     s.options.add(new Option("-- Select --", ""));
-    node.nodes.forEach((n, i) => s.options.add(new Option(n.enTitle || n.key, JSON.stringify({i, n}))));
+    node.nodes.forEach((n, i) => s.options.add(new Option(n.heTitle || n.key, JSON.stringify({i, n}))));
     s.onchange = () => {
         while (s.nextSibling) s.parentElement.removeChild(s.nextSibling);
         const sel = JSON.parse(s.value);
