@@ -152,7 +152,7 @@ async function fetchText() {
         body: JSON.stringify({path})
     });
     const data = await res.json();
-    document.getElementById('display').innerHTML = data.text;
+    document.getElementById('display').innerHTML = Array.isArray(data.text) ? data.text.join('<br><br>') : data.text;
     document.getElementById('prev').disabled = pos <= 0;
     document.getElementById('next').disabled = pos >= allItems.length - 1;
     isPrayerOpen = !data.error;

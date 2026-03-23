@@ -15,7 +15,7 @@ def flatten_text(data):
     if isinstance(data, list):
         result = []
         for item in data: result.extend(flatten_text(item))
-        return result
+        return sorted(result)
     return []
 
 def get_sefaria_text(ref):
@@ -26,9 +26,9 @@ def get_sefaria_text(ref):
         if "versions" in r:
             for v in r['versions']:
                 if v.get('language') == 'he' and v.get('text'):
-                    return "<br><br>".join(flatten_text(v['text']))
+                    return flatten_text(v['text'])
     except: pass
-    return None
+    return []
 
 @app.route("/")
 def index():
