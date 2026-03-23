@@ -25,7 +25,7 @@ graph TD
     end
 
     UI -->|User Reads| Tracker
-    Tracker -->|Pulse (2s)| API
+    Tracker -->|Pulse 2s| API
     API -->|Store Data| State
     State -->|Check Flatline| Analysis
     Analysis -->|Alert Status| API
