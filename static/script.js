@@ -111,6 +111,109 @@ function setupNudgeUI() {
     }
 }
 
+function showMinyanCheck() {
+    document.getElementById('nudge-overlay').innerHTML = `
+        <div style="background: white; padding: 25px; border-radius: 10px; text-align: center; max-width: 90%; color: #333;">
+            <h3>Continuing Prayer</h3>
+            <p>Where is the Minyan holding?</p>
+            <p style="margin-top: 10px;">If necessary to catch up, skip everything except:</p>
+            <ul style="list-style: none; padding: 0; margin: 15px 0; font-weight: bold; font-size: 1.1rem; line-height: 1.5;">
+                <li>בָּרוּךְ שֶׁאָמַר</li>
+                <li>אַשְׁרֵי</li>
+                <li>יִשְׁתַּבַּח</li>
+                <li>שְׁמַע</li>
+                <li>עֲמִידָה</li>
+            </ul>
+            <button onclick="dismissNudge()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px;">Return to Prayer</button>
+        </div>
+    `;
+}
+
+function showMuscleRelaxation() {
+    const text = '<p style="margin-bottom:15px">Let’s release some tension from your body.<br>Starting at your toes, gently tense the muscles for a few seconds, then relax them.<br>Slowly move upward–feet, calves, legs, and so on–until you reach your head.<br>Take your time with each step.</p>';
+    document.getElementById('nudge-overlay').innerHTML = `
+        <div style="background: white; padding: 25px; border-radius: 10px; text-align: center; max-width: 90%; color: #333;">
+            <h3>Guidance</h3>
+            ${text}
+            <p style="margin-top:15px; font-weight:bold;">Did this help?</p>
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                <button onclick="showVisualization()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #888; color: white; border: none; border-radius: 5px;">No</button>
+                <button onclick="showMinyanCheck()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px;">Yes</button>
+            </div>
+        </div>
+    `;
+}
+
+function showVisualization() {
+    const text = '<p style="margin-bottom:15px">Close your eyes if you feel comfortable.<br>Imagine a calm, peaceful place–maybe a beach, a forest, or somewhere you love.<br>Notice what you see, hear, and feel.<br>Stay there for a few moments and let yourself relax into it.</p>';
+    document.getElementById('nudge-overlay').innerHTML = `
+        <div style="background: white; padding: 25px; border-radius: 10px; text-align: center; max-width: 90%; color: #333;">
+            <h3>Guidance</h3>
+            ${text}
+            <p style="margin-top:15px; font-weight:bold;">Did this help?</p>
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                <button onclick="showMindfulness()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #888; color: white; border: none; border-radius: 5px;">No</button>
+                <button onclick="showMinyanCheck()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px;">Yes</button>
+            </div>
+        </div>
+    `;
+}
+
+function showMindfulness() {
+    const text = '<p style="margin-bottom:15px">Gently close your eyes.<br>Bring your attention to your breath—nothing else.<br>If your mind wanders, that’s okay—just return to your breathing.<br>Stay here for as long as you need.</p>';
+    document.getElementById('nudge-overlay').innerHTML = `
+        <div style="background: white; padding: 25px; border-radius: 10px; text-align: center; max-width: 90%; color: #333;">
+            <h3>Guidance</h3>
+            ${text}
+            <p style="margin-top:15px; font-weight:bold;">Did this help?</p>
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                <button onclick="showGrounding()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #888; color: white; border: none; border-radius: 5px;">No</button>
+                <button onclick="showMinyanCheck()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px;">Yes</button>
+            </div>
+        </div>
+    `;
+}
+
+function showGrounding() {
+    const text = '<p style="margin-bottom:15px">Let’s reconnect with the present moment.<br>Take a slow breath, and notice:<br>5 things you can see<br>4 things you can touch<br>3 things you can hear<br>2 things you can smell<br>1 thing you can taste<br>Move through this slowly and gently.</p>';
+    document.getElementById('nudge-overlay').innerHTML = `
+        <div style="background: white; padding: 25px; border-radius: 10px; text-align: center; max-width: 90%; color: #333;">
+            <h3>Guidance</h3>
+            ${text}
+            <p style="margin-top:15px; font-weight:bold;">Did this help?</p>
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                <button onclick="showPhysicalReset()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #888; color: white; border: none; border-radius: 5px;">No</button>
+                <button onclick="showMinyanCheck()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px;">Yes</button>
+            </div>
+        </div>
+    `;
+}
+
+function showPhysicalReset() {
+    const text = '<p style="margin-bottom:15px">If you’re still feeling overwhelmed, it’s okay to pause.<br>Stand up, stretch, or take a short walk.<br>Roll your shoulders, loosen your back, and give your body a moment to reset.<br>You can return whenever you’re ready.</p>';
+    document.getElementById('nudge-overlay').innerHTML = `
+        <div style="background: white; padding: 25px; border-radius: 10px; text-align: center; max-width: 90%; color: #333;">
+            <h3>Guidance</h3>
+            ${text}
+            <p style="margin-top:15px; font-weight:bold;">Did this help?</p>
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                <button onclick="showSeekHelp()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #888; color: white; border: none; border-radius: 5px;">No</button>
+                <button onclick="showMinyanCheck()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px;">Yes</button>
+            </div>
+        </div>
+    `;
+}
+
+function showSeekHelp() {
+    document.getElementById('nudge-overlay').innerHTML = `
+        <div style="background: white; padding: 25px; border-radius: 10px; text-align: center; max-width: 90%; color: #333;">
+            <h3>Please Seek Help</h3>
+            <p>It seems like you are having a tough time. Please speak to an adult or another person for help.</p>
+            <button onclick="dismissNudge()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #888; color: white; border: none; border-radius: 5px; margin-top: 15px;">Close</button>
+        </div>
+    `;
+}
+
 async function submitCheckIn() {
     const anxiety = parseInt(document.getElementById('anx-slider').value);
     const focus = parseInt(document.getElementById('foc-slider').value);
@@ -131,7 +234,11 @@ async function submitCheckIn() {
             <div style="background: white; padding: 25px; border-radius: 10px; text-align: center; max-width: 90%; color: #333;">
                 <h3>Guidance</h3>
                 ${advice}
-                <button onclick="dismissNudge()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; margin-top: 15px;">Okay</button>
+                <p style="margin-top:15px; font-weight:bold;">Did this help?</p>
+                <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                    <button onclick="showMuscleRelaxation()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #888; color: white; border: none; border-radius: 5px;">No</button>
+                    <button onclick="showMinyanCheck()" style="padding: 10px 20px; font-size: 1rem; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px;">Yes</button>
+                </div>
             </div>
         `;
     } else {
